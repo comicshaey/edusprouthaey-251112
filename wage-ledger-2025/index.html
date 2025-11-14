@@ -1,266 +1,76 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>조리종사원 및 청소원 방학중근무 인건비 계산기</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>학교장 임용권자 2025학년도 임금대장</title>
+  <link rel="icon" href="../static/favicon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="./script.js"></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="shell">
-      <h1>조리종사원 및 청소원 방학중근무 인건비 계산기 (임시)</h1>
-      <p class="sub">
-        방학중 비상시근로자의 방학 중 근무에 대한 인건비
-        (방학중근무수당·주휴수당·일할계산)를 간단히 가늠해보는 도구입니다.
-      </p>
+<header class="site-header">
+  <div class="shell">
+    <h1>학교장 임용권자 2025학년도 임금대장</h1>
+    <p class="sub">지급/공제 항목을 입력하고 엑셀로 내보내기</p>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="card">
+    <h2>1) 기본 정보</h2>
+    <div class="grid three">
+      <label>기관명<input id="org" type="text" placeholder="예: ○○초등학교"></label>
+      <label>작성월<input id="month" type="month" value="2025-03"></label>
+      <label>담당자 메모<textarea id="memo" placeholder="비고/메모"></textarea></label>
     </div>
-  </header>
+  </section>
 
-  <main class="shell">
-    <!-- ① 기본 정보 -->
-    <section class="card">
-      <h2>① 기본 정보 입력</h2>
-
-      <!-- 직종 -->
-      <div class="form-row">
-        <label for="jobType">직종 선택</label>
-        <select id="jobType">
-          <option value="cook">교육공무직 - 조리사</option>
-          <option value="cook-helper">교육공무직 - 조리실무사</option>
-          <option value="cleaner">특수운영직군 - 청소원</option>
-        </select>
-        <p class="hint">
-          ※ 조리사·조리실무사는 방학중비상시 직종 규정에 따른
-          <strong>방학중근무수당·주휴수당</strong>을, 청소원은
-          <strong>월급 일할계산 방식</strong>으로 인건비를 산정하는 것으로 가정합니다.
-        </p>
+  <section class="card">
+    <div class="row between">
+      <h2>2) 임금대장 입력</h2>
+      <div class="row gap">
+        <button id="addRow" class="btn">행 추가</button>
+        <button id="clearRows" class="btn ghost">모두 지우기</button>
       </div>
-
-      <!-- 근무 기간 -->
-      <div class="grid two">
-        <div class="form-row">
-          <label for="startDate">근무 시작일자</label>
-          <input type="date" id="startDate" />
-          <p class="hint">
-            방학 중 근무가 시작되는 날짜를 입력해 주세요.
-          </p>
-        </div>
-
-        <div class="form-row">
-          <label for="endDate">근무 종료일자</label>
-          <input type="date" id="endDate" />
-          <p class="hint">
-            방학 중 마지막 근무 예정일을 입력해 주세요.
-          </p>
-        </div>
-      </div>
-
-      <!-- (1) 인건비 일할계산용 월 통상임금 -->
-      <div class="grid two">
-        <div class="form-row">
-          <label for="monthlyPay">월 통상임금 합계 (일할계산용)</label>
-          <input id="monthlyPay" type="number" min="0" step="10" />
-          <p class="hint">
-            예: 청소원 일할계산 등에 사용할 월 인건비 총액.<br />
-            아래 항목별 금액을 입력하면 이 칸에 자동 합산됩니다.
-          </p>
-        </div>
-
-        <div class="form-row">
-          <label>통상임금 세부 항목 (선택)</label>
-          <input id="wageBase" type="number" min="0" step="10" placeholder="기본급" />
-          <input id="wageMeal" type="number" min="0" step="10" placeholder="정액급식비" />
-          <input id="wageExtra" type="number" min="0" step="10" placeholder="기타 정기수당 합계" />
-          <p class="hint">
-            세 칸에 입력하면 <strong>기본급+식대+기타수당</strong>을 합산해서
-            위의 “월 통상임금 합계” 칸에 자동 반영합니다.
-          </p>
-        </div>
-      </div>
-
-      <!-- (2) 주휴수당 전용 기준 금액 -->
-      <div class="grid two">
-        <div class="form-row">
-          <label for="holidayMonthlyPay">주휴수당 산정 기준 월 금액</label>
-          <input id="holidayMonthlyPay" type="number" min="0" step="10" />
-          <p class="hint">
-            주휴수당 산정에 <strong>포함되는 항목만</strong> 합산해서 입력합니다.<br />
-            예: 기본급 + 주휴 포함으로 보는 고정수당 등.<br />
-            아래 세부 항목을 쓰면 이 칸에 자동 합산됩니다.
-          </p>
-        </div>
-
-        <div class="form-row">
-          <label>주휴수당 산정 항목 세부 입력 (선택)</label>
-          <input id="holidayWage1" type="number" min="0" step="10" placeholder="기본급 (주휴 포함)" />
-          <input id="holidayWage2" type="number" min="0" step="10" placeholder="수당 1 (주휴 포함)" />
-          <input id="holidayWage3" type="number" min="0" step="10" placeholder="수당 2 (주휴 포함)" />
-          <p class="hint">
-            주휴수당 산정에 실제로 포함되는 항목만 입력하세요.<br />
-            규정이 복잡하면 외부에서 합산한 금액을 위 한 칸에만 넣어도 됩니다.
-          </p>
-        </div>
-      </div>
-
-      <div class="grid two">
-        <div class="form-row">
-          <label for="monthDays">기준 일수 (해당 월 유급일수)</label>
-          <input id="monthDays" type="number" min="1" max="31" step="1" />
-          <p class="hint">
-            예: 31일 중 토요일 4일을 뺀 27일처럼,
-            실제 일할계산에 사용할 <strong>분모</strong>를 입력합니다.
-          </p>
-        </div>
-
-        <div class="form-row">
-          <label for="holidayDaysPerWeek">주휴일 수 (직종 기준)</label>
-          <select id="holidayDaysPerWeek">
-            <option value="2">주말 토·일 2일 (급식실 청소처럼 양일 주휴)</option>
-            <option value="1">일요일 1일만</option>
-          </select>
-          <p class="hint">
-            조리종사원 방학중 청소처럼 토·일 모두 유급 주휴로 잡는 경우는 2일,<br />
-            일반 단시간 근로자처럼 일요일만 주휴일이면 1일을 선택합니다.
-          </p>
-        </div>
-      </div>
-
-      <p class="note">
-        ※ 이 계산기는 업무편람의
-        <strong>“방학 중 1주에 2일 이상 근무하고 그 다음 주에 근무가 예정된 경우 주말을 유급 주휴일로 처리”</strong>
-        하는 사례를 참고하여, 실제 근무일별 근로시간을 기준으로 간단히 계산해주는 도구입니다.
-      </p>
-    </section>
-
-    <!-- ② 날짜별 근무 선택 -->
-    <section class="card">
-      <h2>② 근무일 · 근무시간 선택</h2>
-      <p class="hint">
-        방학 시작일자와 종료일자를 먼저 입력하면, 그 사이의 날짜가 아래 표에 나타납니다.<br />
-        실제로 <strong>근무한 날짜에만 체크</strong>하고,
-        해당 날짜의 <strong>유급 근로시간(휴게 제외)</strong>을 입력해 주세요.
-      </p>
-
-      <div class="table-wrap" id="daysContainer">
-        <p class="hint" style="padding:10px 12px;">
-          우선 위에서 근무 시작일자와 종료일자를 입력해 주세요.
-        </p>
-      </div>
-    </section>
-
-    <!-- ③ 자동 계산 결과 -->
-    <section class="card">
-      <h2>③ 자동 계산 결과</h2>
-      <p class="hint">
-        근무일과 근로시간, 인건비 금액을 입력하면 아래 금액이 자동으로 다시 계산됩니다.
-      </p>
-
-      <div class="result-grid">
-        <div class="result-item">
-          <div class="result-label">총 실근무일수</div>
-          <div class="result-value" id="workingDaysText">-</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">주당 실근로시간 (최대치 기준)</div>
-          <div class="result-value" id="weeklyHoursText">-</div>
-          <div class="result-sub" id="weeklyHoursHintText">
-            근무기록을 바탕으로, 가장 많이 일한 주의 실근로시간을 기준으로 설명합니다.
-          </div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">방학중근무수당 (조리직용)</div>
-          <div class="result-value" id="restPerDayText">-</div>
-          <div class="result-sub" id="restRuleText">
-            방학중근무수당 규칙: 4시간 이하 1만원, 4시간 초과 2만원
-          </div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">방학중근무수당 합계 (조리직용)</div>
-          <div class="result-value" id="restTotalText">-</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">주휴일수 (선택한 주휴일 기준, 조리직)</div>
-          <div class="result-value" id="holidayDaysText">-</div>
-          <div class="result-sub" id="holidayCondText">
-            주휴 요건(1주 15시간 이상 + 다음 주 근무 예정)을 충족한 주 수 × 선택한 주휴일 수
-          </div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">1일 주휴수당 (조리직)</div>
-          <div class="result-value" id="holidayPerDayText">-</div>
-          <div class="result-sub" id="holidayHintText">
-            “주휴수당 산정 기준 월 금액” ÷ 기준 일수로 산출
-          </div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">주휴수당 합계 (조리직)</div>
-          <div class="result-value" id="holidayTotalText">-</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">일할계산 인건비 (청소원용)</div>
-          <div class="result-value" id="prorataText">-</div>
-          <div class="result-sub" id="prorataHintText">
-            특수운영직군 청소원 선택 시에만 사용됩니다.
-          </div>
-        </div>
-
-        <div class="result-item result-item-wide">
-          <div class="result-label strong">총 인건비</div>
-          <div class="result-total" id="grandTotalText">-</div>
-        </div>
-      </div>
-
-      <p class="note small">
-        ※ 이 계산기는 <strong>학교 예산 가늠용 간이 도구</strong>입니다.<br />
-        실제 지급 시에는 해당 연도 <strong>업무편람, 단체협약, 지침</strong>을 반드시 다시 확인하고,
-        특히 특수운영직군 청소원의 경우, 관내 통일기준·내부결재 내용도 함께 검토해야 합니다.
-      </p>
-    </section>
-
-    <!-- ④ 규칙 요약 -->
-    <section class="card">
-      <h2>④ 적용 규칙 요약 (메모용)</h2>
-      <ul class="rule-list">
-        <li>조리사·조리실무사: 방학중비상시 직종 교육공무직 규정 적용</li>
-        <li>
-          방학중근무수당(조리직): 근무일마다
-          <strong>유급 근로시간이 4시간 이하이면 10,000원</strong>,
-          <strong>4시간 초과이면 20,000원</strong>으로 일자별 합산
-        </li>
-        <li>
-          방학 중 어떤 주의 실근로시간이 <strong>15시간 이상</strong>이고
-          그 다음 주에 근무가 예정되어 있으며, 해당 주에 주휴일(일요일 등)이 포함된 경우
-          그 주를 <strong>주휴수당 요건 충족 주</strong>로 봄
-        </li>
-        <li>
-          주휴수당(조리직): <strong>“주휴수당 산정 기준 월 금액” × (주휴일수 ÷ 기준 일수)</strong> 방식으로 산정
-        </li>
-        <li>
-          특수운영직군 <strong>청소원</strong>:
-          방학중비상시 주휴 규정은 적용하지 않고,
-          <strong>월 통상임금 × (근로일수 ÷ 기준 일수)</strong>로 방학 근무분 인건비를
-          일할계산하는 것으로 가정
-        </li>
-      </ul>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="shell">
-      <p>
-        제작자: 귀여운 고주무관 · Contact: edusproutcomics@naver.com · 개인적인 토이 프로젝트입니다.
-      </p>
     </div>
-  </footer>
+    <div class="table-wrap">
+      <table id="wageTable">
+        <thead>
+          <tr>
+            <th>성명</th><th>직종/직급</th>
+            <th>기본급</th><th>정액급식비</th><th>직책수당</th><th>가족수당</th><th>교통비</th><th>시간외수당</th><th>휴일·야간</th>
+            <th>기타지급</th>
+            <th>건강보험</th><th>국민연금</th><th>고용보험</th><th>소득세</th><th>지방소득세</th><th>기타공제</th>
+            <th>지급합계</th><th>공제합계</th><th>차인지급액</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="16" class="right">합계</td>
+            <td id="sum_pay" class="numeric">0</td>
+            <td id="sum_ded" class="numeric">0</td>
+            <td id="sum_net" class="numeric">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
 
-  <script src="script.js"></script>
+  <section class="card">
+    <h2>내보내기</h2>
+    <div class="row gap">
+      <button id="exportExcel" class="btn primary">엑셀로 다운로드</button>
+      <a class="btn" href="../">메인으로 돌아가기</a>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center; margin-top:15px; color:#444;">
+  제작자: 씩씩하고 귀여운 고주무관 · Contact: edusproutcomics@naver.com · 개인적인 토이 프로젝트입니다.
+</footer>
+
 </body>
 </html>
