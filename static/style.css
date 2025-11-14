@@ -76,7 +76,28 @@ textarea{
 
 textarea{min-height:100px}
 input:disabled{background:#f6f7fb;color:#000}
-small{color:#000;font-weight:400}
+
+/* 작은 글씨는 살짝 연하게 */
+small{
+  color:#666;
+  font-weight:400;
+  font-size:0.85em;
+}
+
+/* 한 줄에 묶어서 쓰는 폼 행 */
+.form-row{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:8px;
+}
+
+/* 설명문 공통 */
+.hint{
+  margin:4px 0 0;
+  font-size:12px;
+  color:#666;
+}
 
 .row{display:flex;align-items:center}
 .between{justify-content:space-between}
@@ -207,4 +228,99 @@ tfoot td{background:#fafafb;font-weight:700}
   .shell{padding:16px 14px;}
   .card{padding:16px;}
   footer{text-align:center;font-size:0.9rem;padding:0 10px;}
+}
+
+
+/* 251113목 방학중 인건비 추가 - 계산기 공통 컴포넌트 */
+
+/* 결과 박스 그리드 */
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+  gap:10px;
+  margin-top:12px;
+}
+
+.result-item{
+  border-radius:12px;
+  border:1px solid #ececf5;
+  padding:10px 12px;
+  background:#fafafa;
+}
+
+.result-item-wide{
+  grid-column:1 / -1;
+  background:#000;
+  color:#fff;
+  border-color:#000;
+}
+
+.result-label{
+  font-size:13px;
+  color:#666;
+}
+
+.result-label.strong{
+  font-weight:700;
+  font-size:14px;
+}
+
+.result-value{
+  margin-top:4px;
+  font-size:16px;
+  font-weight:600;
+}
+
+.result-total{
+  margin-top:4px;
+  font-size:20px;
+  font-weight:700;
+}
+
+.result-sub{
+  margin-top:3px;
+  font-size:11px;
+  color:#666;
+  line-height:1.4;
+}
+
+/* 메모/규칙 리스트 */
+.rule-list{
+  margin:0;
+  padding-left:18px;
+  font-size:13px;
+  color:#444;
+  line-height:1.6;
+}
+
+.rule-list li + li{
+  margin-top:4px;
+}
+
+/* note 확장 */
+.note.small{
+  font-size:11px;
+}
+
+
+.segment-header {
+  display: grid;
+  grid-template-columns: 1.4fr 1.4fr 1.2fr 2fr;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.segment-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1.4fr 1.2fr 2fr;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.segment-row input[type="text"],
+.segment-row input[type="number"],
+.segment-row select {
+  font-size: 13px;
 }
