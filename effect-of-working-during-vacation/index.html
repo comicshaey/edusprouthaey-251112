@@ -22,7 +22,7 @@
       <h2>1. 기본 정보</h2>
       <div class="grid two">
         <label>
-          회계연도
+          학년도 (예: 2025)
           <input type="number" id="year" value="2025" />
         </label>
         <label>
@@ -35,7 +35,7 @@
           <input type="date" id="startDate" />
         </label>
         <div>
-          <strong>근속연수 (3.1.일자 기준)</strong><br />
+          <strong>근속연수 (해당 학년도 3.1. 기준)</strong><br />
           <span id="serviceYears">0</span> 년
         </div>
 
@@ -49,21 +49,25 @@
         </label>
       </div>
       <p class="muted">
-        ·회계연도 입력하면 토요일 제외 일수 자동 산정됨.<br />
-        ·최초 임용일 입력하면 앞서 입력한 회계연도의 3.1.일자를 기준으로 현재 근속연수 및 기본 연차일수 자동 산출함.<br />
+        ·학년도(예: 2025)를 입력하면 <strong>2025.3.1.~2026.2.말</strong> 기간을 기준으로 토요일 제외 일수 산정됨.<br />
+        ·최초 임용일 입력하면 해당 학년도 3.1. 기준 근속연수 및 기본 연차일수가 자동 산출됨(방학중 비상시근로자 기준).<br />
         ·휴게시간 제외 1일 소정 근로시간: 8시간, 6시간, 5시간 등.
       </p>
+      <div style="margin-top: 12px;">
+        <strong>이 학년도 근무 실적 기준 연차 사용 기간 안내</strong><br />
+        <span id="academicExplain">-</span>
+      </div>
     </section>
 
     <!-- 2. 달력 기준 근무일수 (토요일 제외) -->
     <section class="card">
-      <h2>2. 달력상 총 일수 (토요일 제외)</h2>
+      <h2>2. 학년도 기준 달력상 총 일수 (토요일 제외)</h2>
       <p>
-        ·상단에 입력한 회계연도 기준으로 토요일을 제외한 달력상 총 일수 자동 산출
+        ·상단에 입력한 학년도 기준으로 <strong>해당 학년도(3.1.~다음해 2.말)</strong> 동안 토요일을 제외한 일수를 자동 산출함.
       </p>
       <div class="grid two">
         <div>
-          <strong>달력상 총 일수</strong><br />
+          <strong>학년도 총 일수 (3.1.~다음해 2.말)</strong><br />
           <span id="calendarTotalDays">-</span> 일
         </div>
         <div>
@@ -151,10 +155,10 @@
         </div>
       </div>
 
-      <h3 style="margin-top: 16px;">4-3. 방학 일수로 학기중 일수 계산하기</h3>
+      <h3 style="margin-top: 16px;">4-3. 방학 일수로 학기중 일수 및 출근율 계산하기</h3>
       <div class="grid three" style="margin-top: 8px;">
         <div>
-          <strong>여름방학 및 겨울방학 일수 합계 (토요일 제외)</strong><br />
+          <strong>여름·겨울 방학 일수 합계 (토요일 제외)</strong><br />
           <span id="vacDaysNoSat">0</span> 일
         </div>
         <div>
@@ -162,10 +166,25 @@
           <span id="termDaysNoSat">-</span> 일
         </div>
         <div>
-          <strong>학기중 출근율 산정 (제외기간 미반영)</strong><br />
+          <strong>출근율(학기중+방학근무 기준)</strong><br />
           <span id="termAttendanceRate">-</span> %
         </div>
       </div>
+
+      <div class="grid two" style="margin-top: 8px;">
+        <label>
+          방학 중 실제 유급 근무일수 (토요일 제외, 여름+겨울 합산)
+          <input type="number" id="vacWorkDays" value="0" step="0.1" />
+        </label>
+        <div>
+          <strong>출근율 80% 기준 판정</strong><br />
+          <span id="attendance80Judge">-</span>
+        </div>
+      </div>
+      <p class="muted">
+        ·출근율(참고용) = (학기중 근무일수 + 방학 중 실제 유급 근무일수) ÷ 학년도 전체 토요일 제외 일수 × 100.<br />
+        ·편람상 세부 규정은 반드시 원문으로 재확인 필요. 이 계산기는 방향 잡는 용도.
+      </p>
     </section>
 
     <!-- 5. 방학 중 근무 보수 입력 (항목별, 비과세 체크) -->
@@ -209,20 +228,20 @@
     <section class="card">
       <h2>6. 전년도 방학근무 관련</h2>
       <p class="muted">
-        ·전년도 정보도 방학 일자 입력하면 자동 계산됨
+        ·전년도 학년도(예: 2024학년도)도 방학 일자 입력하면 자동 계산됨
       </p>
 
       <div class="grid three">
         <div>
-          <strong>전년도</strong><br />
+          <strong>전년도 학년도</strong><br />
           <span id="prevYearLabel">-</span> 년
         </div>
         <div>
-          <strong>전년도 달력상 총 일수</strong><br />
+          <strong>전년도 학년도 총 일수</strong><br />
           <span id="prevYearTotalDays">-</span> 일
         </div>
         <div>
-          <strong>전년도 달력상 총 일수 (토요일 제외)</strong><br />
+          <strong>전년도 학년도 토요일 제외 일수</strong><br />
           <span id="prevYearDaysNoSat">-</span> 일
         </div>
       </div>
@@ -274,7 +293,7 @@
           <span id="prevTermDaysNoSat">0</span> 일
         </div>
         <div>
-          <strong>전년도 출근율 </strong><br />
+          <strong>전년도 출근율 (참고)</strong><br />
           <span id="prevAttendanceRate">-</span> %
         </div>
       </div>
@@ -332,7 +351,7 @@
           <input type="number" id="annualUsedHalf" value="0" step="0.1" />
         </label>
         <label>
-          지각·외출·조퇴 합계 (시간 단위위)
+          지각·외출·조퇴 합계 (시간 단위)
           <input type="number" id="annualUsedHours" value="0" step="0.1" />
         </label>
       </div>
@@ -413,7 +432,6 @@
         ·전일제: (기본급+근속수당+정액급식비+직무관련수당+(정기상여금/12)+(명절휴가비/12)) ÷ 209시간 <br />
         ·6시간: (기본급+근속수당+정액급식비+(정기상여금/12)+(명절휴가비/12)) ÷ 156시간 <br />
         ·5시간: (기본급+근속수당+정액급식비+(정기상여금/12)+(명절휴가비/12)) ÷ 130시간 <br />
-        
       </p>
     </section>
 
@@ -557,8 +575,9 @@
       </p>
     </section>
 
+    <p><a class="btn" href="../index.html">메인으로 돌아가기</a></p>
 
-<p><a class="btn" href="../index.html">메인으로 돌아가기</a></p>
+  </main>
 
   <footer style="text-align:center; margin-top:15px; color:#444;">
     제작자: 씩씩하고 귀여운 고주무관 · Contact: edusproutcomics@naver.com · 개인적인 토이 프로젝트입니다.
@@ -567,4 +586,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
