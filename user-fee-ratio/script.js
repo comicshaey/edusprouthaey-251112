@@ -1,5 +1,4 @@
-
-// 원단위 절삭.
+// 원단위 절삭 (지금은 10원 단위 절삭으로 사용)
 function round10(v) {
   const n = Number(v) || 0;
   return Math.floor(n / 10) * 10;
@@ -16,38 +15,9 @@ function formatWon(v) {
   return v.toLocaleString("ko-KR") + "원";
 }
 
-//비율 설정. 조정 가능
-
-// 국민연금 9% (기관:개인=1:1)
-const R_PENSION_EMP = 0.045;
-const R_PENSION_ORG = 0.045;
-
-// 건강보험 7.09% (기관:개인=1:1)
-const R_HEALTH_EMP = 0.03545;
-const R_HEALTH_ORG = 0.03545;
-
-// 장기요양보험: 건강보험료*12.95% (기관:개인=1:1)
-const R_LONGTERM_EMP = 0.1295;
-const R_LONGTERM_ORG = 0.1295;
-
-// 고용보험: 근로자 실업급여
-function round10(v) {
-  const n = Number(v) || 0;
-  return Math.floor(n / 10) * 10;
-}
-
-// DOM 헬퍼
-function $(id) {
-  return document.getElementById(id);
-}
-
-// 원화 포맷
-function formatWon(v) {
-  if (isNaN(v)) return "0원";
-  return v.toLocaleString("ko-KR") + "원";
-}
-
-//비율 설정. 조정 가능
+// ------------------------
+//   비율 설정 (조정 가능)
+// ------------------------
 
 // 국민연금 9% (기관:개인=1:1)
 const R_PENSION_EMP = 0.045;
@@ -61,21 +31,22 @@ const R_HEALTH_ORG = 0.03545;
 const R_LONGTERM_EMP = 0.1295;
 const R_LONGTERM_ORG = 0.1295;
 
-// 고용보험: 근로자 실업급여 0.9%, 사업주 실업급여 0.9%, 사업주 고안직능 0.75%
+// 고용보험: 근로자 실업급여 0.9%, 사업주 실업급여 0.9%, 사업주 고안직능 0.75% → 기관부담 1.75%
 const R_EMPLOY_EMP = 0.009;
 const R_EMPLOY_ORG = 0.0175;
 
 // 산재보험: 기관부담만 0.966%
 const R_ACCIDENT_ORG = 0.00966;
 
-// 퇴직적립금: 보수월액의 1/12 근사치 
+// 퇴직적립금: 보수월액의 1/12 근사치
 const R_RETIRE = 1 / 12;
 
 // 연차수당 증가분 비율 (통상임금 변동에 따른 대략값)
 const R_ANNUAL_LEAVE = 0.12;
 
-
+// ------------------------
 //   순환식 반복 계산
+// ------------------------
 
 function calcCoachDistribution(studentCount, unitFee) {
   const totalCollectedRaw = studentCount * unitFee;
@@ -151,14 +122,14 @@ function calcCoachDistribution(studentCount, unitFee) {
     // 연차수당 증가분
     annualLeave = round10(base * R_ANNUAL_LEAVE);
 
-    // 개인부담금금 합계
+    // 개인부담금 합계 (사회보험 개인부담)
     sumEmp =
       pensionEmp +
       healthEmp +
       longtermEmp +
       employEmp;
 
-    // 기관부담금 합계
+    // 기관부담금 합계 (사회보험 + 산재)
     sumOrg =
       pensionOrg +
       healthOrg +
@@ -166,7 +137,7 @@ function calcCoachDistribution(studentCount, unitFee) {
       employOrg +
       accidentOrg;
 
-    // 공제합계 = 개인부담금 +기관부담금 +퇴직적립금 상승분+ 연차 미사용수당 상승분
+    // 공제합계 = 개인부담금 + 기관부담금 + 퇴직적립금 + 연차 미사용수당 증가분
     totalDeductions =
       sumEmp +
       sumOrg +
@@ -205,8 +176,9 @@ function calcCoachDistribution(studentCount, unitFee) {
   };
 }
 
-// 화면 갱신
-
+// ------------------------
+//     화면 갱신
+// ------------------------
 
 function updateView(result) {
   $("totalCollected").textContent = formatWon(result.totalCollected);
@@ -240,8 +212,9 @@ function updateView(result) {
       : "계산하기 버튼 눌러야 결과 나옴";
 }
 
-
+// ------------------------
 //   버튼에서 호출할 함수
+// ------------------------
 
 function handleCalculate() {
   const students = parseInt($("students").value || "0", 10);
