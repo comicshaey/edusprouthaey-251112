@@ -34,14 +34,15 @@ function countDaysWithoutSaturday(startValue, endValue) {
   return cnt;
 }
 
-// 특정 연도의 전체 일수 및 토요일 제외 일수 계산
+// 특정 "학년도"의 전체 일수 및 토요일 제외 일수 계산
+// 학년도 year → year.3.1. ~ (year+1).2.말
 function calcYearDays(year) {
   if (!year) return { total: 0, noSat: 0 };
   const y = parseInt(year, 10);
   if (isNaN(y)) return { total: 0, noSat: 0 };
 
-  const start = new Date(y, 0, 1);
-  const end = new Date(y, 11, 31);
+  const start = new Date(y, 2, 1);        // year-03-01
+  const end = new Date(y + 1, 2, 0);      // 다음해 3월 0일 = 2월 마지막날
 
   let total = 0;
   let noSat = 0;
@@ -49,19 +50,19 @@ function calcYearDays(year) {
   const d = new Date(start.getTime());
   while (d <= end) {
     total++;
-    if (d.getDay() !== 6) noSat++;
+    if (d.getDay() !== 6) noSat++;        // 토요일(6) 제외
     d.setDate(d.getDate() + 1);
   }
   return { total, noSat };
 }
 
-// 근속연수 계산(해당 연도 3월 1일 기준, 완료 연수 기준)
+// 근속연수 계산(해당 학년도 3월 1일 기준, 완료 연수 기준)
 function calcServiceYears(startValue, year) {
   const start = parseDate(startValue);
   const y = parseInt(year, 10);
   if (!start || isNaN(y)) return { years: 0 };
 
-  // 학교 기준: 해당 연도 3월 1일
+  // 학교 기준: 해당 학년도 3월 1일
   const ref = new Date(y, 2, 1); // 월은 0부터 시작 → 2가 3월
   if (start > ref) return { years: 0 };
 
@@ -81,6 +82,14 @@ function calcBaseAnnualFromService(serviceYears) {
   if (serviceYears <= 0) return 0;
   const days = 12 + Math.floor((serviceYears - 1) / 2);
   return Math.min(25, days);
+}
+
+// 근속연수 → 근속수당(학교, 2025.3.1. 이후 기준, 월 단위)
+// 1년 이상 40,000원, 2년 이상 80,000원, ... 23년 이상 920,000원(상한)
+function calcSeniorityAllowanceFromService(serviceYears) {
+  if (serviceYears <= 0) return 0;
+  const capped = Math.min(serviceYears, 23);
+  return capped * 40000;
 }
 
 // 제외기간 행 추가
@@ -320,12 +329,42 @@ function calcTax(baseForTax) {
   return { incomeTax, localTax, total };
 }
 
+// 날짜 포맷 helper
+function formatDate(d) {
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${y}.${m}.${day}.`;
+}
+
 // 메인 재계산 함수
 function recalcAll() {
   const yearVal = document.getElementById("year").value;
   const year = parseInt(yearVal, 10);
 
-  // 1) 현재 연도 달력 일수
+  // 학년도 설명 텍스트 구성
+  if (!isNaN(year)) {
+    const workStart = new Date(year, 2, 1);     // year-03-01
+    const workEnd = new Date(year + 1, 2, 0);   // (year+1).2.말
+    const useStart = new Date(year + 1, 2, 1);  // (year+1).3.1.
+    const useEnd = new Date(year + 2, 2, 0);    // (year+2).2.말
+
+    const explain = `${year}학년도 (${formatDate(
+      workStart
+    )}~${formatDate(
+      workEnd
+    )}) 근무 실적 기준으로, ${useStart.getFullYear()}년 (${formatDate(
+      useStart
+    )}~${formatDate(useEnd)})에 사용할 연차입니다.`;
+
+    const explainEl = document.getElementById("academicExplain");
+    if (explainEl) explainEl.textContent = explain;
+  } else {
+    const explainEl = document.getElementById("academicExplain");
+    if (explainEl) explainEl.textContent = "-";
+  }
+
+  // 1) 학년도 달력 일수
   const yearInfo = calcYearDays(year);
   document.getElementById("calendarTotalDays").textContent =
     yearInfo.total;
@@ -354,6 +393,19 @@ function recalcAll() {
     }
   }
 
+  // 1-2) 근속연수 기반 근속수당 자동 입력 (통상임금 섹션)
+  if (service.years > 0) {
+    const autoSeniority = calcSeniorityAllowanceFromService(service.years);
+    const seniorityInput = document.getElementById("owSeniority");
+    if (seniorityInput) {
+      // 사용자가 이미 값을 넣어둔 경우(0 초과)는 건드리지 않고, 0일 때만 자동 입력
+      const current = num(seniorityInput.value);
+      if (current === 0) {
+        seniorityInput.value = String(autoSeniority);
+      }
+    }
+  }
+
   // 2) 제외기간
   const excludeTotal = calcExcludeTotal();
   document.getElementById("excludeTotalDays").textContent =
@@ -363,7 +415,7 @@ function recalcAll() {
   document.getElementById("workableDays").textContent =
     workable.toFixed(1);
 
-  // 3) 현재 연도 방학 기간(여름·겨울) / 학기중 근무일수
+  // 3) 현재 학년도 방학 기간(여름·겨울) / 학기중 근무일수
   const vac1Start = document.getElementById("vac1Start").value;
   const vac1End = document.getElementById("vac1End").value;
   const vac2Start = document.getElementById("vac2Start").value;
@@ -380,16 +432,36 @@ function recalcAll() {
   document.getElementById("vacDaysNoSat").textContent =
     vacDaysNoSat;
 
+  // 학기중 근무일수 = 학년도 전체 토요일제외 일수 - 방학 토요일제외 일수
   const termDaysNoSat = Math.max(0, yearInfo.noSat - vacDaysNoSat);
   document.getElementById("termDaysNoSat").textContent =
     termDaysNoSat;
 
-  const termAttendanceRate =
-    yearInfo.noSat > 0 ? (termDaysNoSat / yearInfo.noSat) * 100 : 0;
-  document.getElementById("termAttendanceRate").textContent =
-    yearInfo.noSat ? termAttendanceRate.toFixed(1) : "-";
+  // 방학 중 실제 유급 근무일수 (사용자 입력이 있으면 사용)
+  const vacWorkDays = numById("vacWorkDays");
 
-  // 4) 전년도 달력 및 방학(여름·겨울)
+  // 출근율(참고용) = (학기중 근무일수 + 방학 중 유급 근무일수) / 학년도 토요일제외 일수
+  let attendanceRate = 0;
+  if (yearInfo.noSat > 0) {
+    attendanceRate =
+      ((termDaysNoSat + vacWorkDays) / yearInfo.noSat) * 100;
+  }
+  document.getElementById("termAttendanceRate").textContent =
+    yearInfo.noSat ? attendanceRate.toFixed(1) : "-";
+
+  // 출근율 80% 기준 판정
+  let judgeText = "-";
+  if (yearInfo.noSat) {
+    if (attendanceRate >= 80) {
+      judgeText = "80% 이상 (연차 전액 부여 기준 충족 가능)";
+    } else {
+      judgeText = "80% 미만 (연차 감액 또는 미부여 가능)";
+    }
+  }
+  const judgeEl = document.getElementById("attendance80Judge");
+  if (judgeEl) judgeEl.textContent = judgeText;
+
+  // 4) 전년도 학년도 달력 및 방학(여름·겨울)
   let prevYear = null;
   if (!isNaN(year)) prevYear = year - 1;
 
